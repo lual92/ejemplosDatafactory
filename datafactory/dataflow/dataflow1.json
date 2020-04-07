@@ -23,10 +23,16 @@
 			],
 			"transformations": [
 				{
-					"name": "DerivedColumn"
+					"name": "lower"
+				},
+				{
+					"name": "TotalPerCode"
+				},
+				{
+					"name": "CodeTotal"
 				}
 			],
-			"script": "source(output(\n\t\tEntity as string,\n\t\tCode as string,\n\t\tYear as integer,\n\t\t{Total COVID-19 tests} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OrigenDatos\nOrigenDatos derive(Suma = {Total COVID-19 tests}+Year) ~> DerivedColumn\nDerivedColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Destino"
+			"script": "source(output(\n\t\tEntity as string,\n\t\tCode as string,\n\t\tYear as integer,\n\t\t{Total COVID-19 tests} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OrigenDatos\nOrigenDatos derive(Code = lower(Code)) ~> lower\nCodeTotal aggregate(groupBy(Code),\n\tCode = ERROR_FUNCTION('')) ~> TotalPerCode\nlower select(mapColumn(\n\t\tEntity,\n\t\tCode,\n\t\tYear,\n\t\t{Total COVID-19 tests},\n\t\tSuma\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> CodeTotal\nTotalPerCode sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Destino"
 		}
 	}
 }
