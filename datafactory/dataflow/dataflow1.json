@@ -1,0 +1,32 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "COVID19",
+						"type": "DatasetReference"
+					},
+					"name": "OrigenDatos"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Salida",
+						"type": "DatasetReference"
+					},
+					"name": "Destino"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DerivedColumn"
+				}
+			],
+			"script": "source(output(\n\t\tEntity as string,\n\t\tCode as string,\n\t\tYear as integer,\n\t\t{Total COVID-19 tests} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OrigenDatos\nOrigenDatos derive(Suma = {Total COVID-19 tests}+Year) ~> DerivedColumn\nDerivedColumn sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Destino"
+		}
+	}
+}
